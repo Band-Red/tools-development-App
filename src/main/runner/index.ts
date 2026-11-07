@@ -22,8 +22,6 @@ function resolveWorkerPath(): string {
   return candidates[0]
 }
 
-const workerPath = resolveWorkerPath()
-
 export interface RunOptions {
   timeoutMs: number
   allowModules: string[]
@@ -49,6 +47,10 @@ export async function runHandlerSource(
 ): Promise<RunResult> {
   const started = Date.now()
   const logs: LogEntry[] = []
+  // Resolve on each run: tests and CLI builds may create the bundle after this
+  // module has been imported, so resolving at module load time can cache a path
+  // to a worker that does not exist yet.
+  const workerPath = resolveWorkerPath()
 
   return await new Promise<RunResult>((resolve) => {
     let settled = false
